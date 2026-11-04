@@ -1,11 +1,12 @@
-package com.example.pdm_roteiro10
+package com.example.pdm_roteiro10.ui.viewmodel
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.pdm_roteiro10.data.AppDatabase
-import com.example.pdm_roteiro10.data.Projeto
-import com.example.pdm_roteiro10.data.Tarefa
+import com.example.pdm_roteiro10.data.local.entity.Projeto
+import com.example.pdm_roteiro10.data.local.entity.Tarefa
+import com.example.pdm_roteiro10.data.repository.ProjetoRepository
+import com.example.pdm_roteiro10.data.repository.TarefaRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -14,11 +15,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class AppViewModel(application: Application) : AndroidViewModel(application) {
-    private val database = AppDatabase.getDatabase(application)
-    private val tarefaDao = database.tarefaDao()
-    private val projetoDao = database.projetoDao()
+@HiltViewModel
+class AppViewModel @Inject constructor(
+    private val tarefaRepository: TarefaRepository,
+    private val projetoRepository: ProjetoRepository
+) : ViewModel() {
 
     private val _isLoadingTarefas = MutableStateFlow(true)
     val isLoadingTarefas: StateFlow<Boolean> = _isLoadingTarefas.asStateFlow()
@@ -29,10 +32,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val _isSaving = MutableStateFlow(false)
     val isSaving: StateFlow<Boolean> = _isSaving.asStateFlow()
 
-    val tarefas: StateFlow<List<Tarefa>> = tarefaDao.getAllTarefas()
+    val tarefas: StateFlow<List<Tarefa>> = tarefaRepository.getAllTarefas()
         .onEach {
-            // Emits initial data or updates from Room
-            delay(300) // Visual loading feedback
+            // Emite dados iniciais ou atualizações do Room
+            delay(300) // Feedback visual de carregamento
             _isLoadingTarefas.value = false
         }
         .stateIn(
@@ -41,9 +44,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             initialValue = emptyList()
         )
 
-    val projetos: StateFlow<List<Projeto>> = projetoDao.getAllProjetos()
+    val projetos: StateFlow<List<Projeto>> = projetoRepository.getAllProjetos()
         .onEach {
-            delay(300) // Visual loading feedback
+            delay(300) // Feedback visual de carregamento
             _isLoadingProjetos.value = false
         }
         .stateIn(
@@ -55,11 +58,11 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun salvarTarefa(tarefa: Tarefa, onComplete: () -> Unit = {}) {
         viewModelScope.launch {
             _isSaving.value = true
-            delay(400) // Loading feedback on save
+            delay(400) // Feedback de carregamento ao salvar
             if (tarefa.id == 0) {
-                tarefaDao.insertTarefa(tarefa)
+                tarefaRepository.insertTarefa(tarefa)
             } else {
-                tarefaDao.updateTarefa(tarefa)
+                tarefaRepository.updateTarefa(tarefa)
             }
             _isSaving.value = false
             onComplete()
@@ -67,24 +70,24 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     suspend fun getTarefa(id: Int): Tarefa? {
-        delay(250) // Loading feedback when querying single item
-        return tarefaDao.getTarefaById(id)
+        delay(250) // Feedback de carregamento ao buscar item
+        return tarefaRepository.getTarefaById(id)
     }
 
     fun deletarTarefa(tarefa: Tarefa) {
         viewModelScope.launch {
-            tarefaDao.deleteTarefa(tarefa)
+            tarefaRepository.deleteTarefa(tarefa)
         }
     }
 
     fun salvarProjeto(projeto: Projeto, onComplete: () -> Unit = {}) {
         viewModelScope.launch {
             _isSaving.value = true
-            delay(400) // Loading feedback on save
+            delay(400) // Feedback de carregamento ao salvar
             if (projeto.id == 0) {
-                projetoDao.insertProjeto(projeto)
+                projetoRepository.insertProjeto(projeto)
             } else {
-                projetoDao.updateProjeto(projeto)
+                projetoRepository.updateProjeto(projeto)
             }
             _isSaving.value = false
             onComplete()
@@ -92,13 +95,13 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     suspend fun getProjeto(id: Int): Projeto? {
-        delay(250) // Loading feedback when querying single item
-        return projetoDao.getProjetoById(id)
+        delay(250) // Feedback de carregamento ao buscar item
+        return projetoRepository.getProjetoById(id)
     }
 
     fun deletarProjeto(projeto: Projeto) {
         viewModelScope.launch {
-            projetoDao.deleteProjeto(projeto)
+            projetoRepository.deleteProjeto(projeto)
         }
     }
 }

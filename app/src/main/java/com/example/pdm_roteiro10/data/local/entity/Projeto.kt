@@ -1,4 +1,4 @@
-package com.example.pdm_roteiro10.data
+package com.example.pdm_roteiro10.data.local.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

@@ -1,4 +1,4 @@
-package com.example.pdm_roteiro10.data
+package com.example.pdm_roteiro10.data.local.dao
 
 import androidx.room.Dao
 import androidx.room.Delete
@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import com.example.pdm_roteiro10.data.local.entity.Tarefa
 import kotlinx.coroutines.flow.Flow
 
 @Dao
